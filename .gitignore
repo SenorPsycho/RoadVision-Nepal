@@ -1,7 +1,6 @@
 # Ignore practice files and large media folders
 Practice_Files/
 videos/
-images/
 
 # Python artifacts
 __pycache__/

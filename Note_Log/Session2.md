@@ -22,4 +22,3 @@
 - No lane markings means no intensity gradients on road surface
 - Dominant bright regions: streetlamps, headlights, sky
 - Prediction: Canny will fire on lighting and building edges before any road-relevant features
-

@@ -1,12 +1,13 @@
 # Ignore practice files and large media folders
 Practice_Files/
 videos/
+Output/
 
 # Python artifacts
 __pycache__/
 *.py[cod]
 *.pyo
-*.pyd
+*.pyd*
 
 # Virtual environment
 .env/

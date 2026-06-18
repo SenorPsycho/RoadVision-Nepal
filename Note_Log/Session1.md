@@ -15,9 +15,3 @@
   at frame 1: no lane markings, power lines, mixed traffic, low light
 - Highway footage has clear yellow left line and dashed white right line
   strong contrast, ideal baseline case
-
-
-
-
-
-

@@ -8,7 +8,9 @@ def average_line(frame, lines):
     right_lines = []
     for line in lines:
         x1, y1, x2, y2 = line[0]
-        slope = (y2 - y1) / (x2 - x1) if x2 != x1 else 0  # Avoid division by zero for vertical lines
+        slope = (
+            (y2 - y1) / (x2 - x1) if x2 != x1 else 0
+        )  # Avoid division by zero for vertical lines
         intercept = y1 - slope * x1
         if slope < -0.3:
             left_lines.append((slope, intercept))
@@ -24,6 +26,8 @@ def make_line(frame, line):
     if line is None:
         return None
     slope, intercept = line
+    if abs(slope) < 0.001:  # guard against near-zero slope
+        return None
     y1 = frame.shape[0]
     y2 = int(y1 * 0.6)
     x1 = int((y1 - intercept) / slope)
@@ -78,6 +82,19 @@ def region_of_interest(frame):
 Kathmandu_Video = cv.VideoCapture("videos/Nepal/Kathmandu.mp4")
 Highway_video = cv.VideoCapture("videos/international/highway.mp4")
 
+# Check if videos opened successfully, if not, print error and exit
+if not Kathmandu_Video.isOpened():
+    print("Error: Could not open Kathmandu video")
+    exit()
+
+if not Highway_video.isOpened():
+    print("Error: Could not open Highway video")
+    exit()
+
+# FPS retrieval for both videos, to ensure they are processed at correct speed and to check if they are same or different
+fps_kathmandu = Kathmandu_Video.get(cv.CAP_PROP_FPS)
+fps_highway = Highway_video.get(cv.CAP_PROP_FPS)
+
 # Temporary line to find frame dimensions
 # print('Kathmandu resolution:', Kathmandu_Video.get(cv.CAP_PROP_FRAME_WIDTH), 'x', Kathmandu_Video.get(cv.CAP_PROP_FRAME_HEIGHT))
 # print('Highway resolution:', Highway_video.get(cv.CAP_PROP_FRAME_WIDTH), 'x', Highway_video.get(cv.CAP_PROP_FRAME_HEIGHT))
@@ -85,6 +102,24 @@ Highway_video = cv.VideoCapture("videos/international/highway.mp4")
 # 2:35:43 = (2*3600 + 35*60 + 43) * 1000 = 9343000 ms
 Highway_video.set(cv.CAP_PROP_POS_MSEC, 9343000)
 # This timestamp chosen to see clean highway roads with less urban factors.
+
+# Define output video writers for both videos, using same dimensions and fps as input videos
+fourcc = cv.VideoWriter_fourcc(*"mp4v")
+
+# Frame dimensions retrieval for both videos, to ensure they are processed correctly
+frame_width = int(Kathmandu_Video.get(cv.CAP_PROP_FRAME_WIDTH))
+frame_height = int(Kathmandu_Video.get(cv.CAP_PROP_FRAME_HEIGHT))
+frame_width2 = int(Highway_video.get(cv.CAP_PROP_FRAME_WIDTH))
+frame_height2 = int(Highway_video.get(cv.CAP_PROP_FRAME_HEIGHT))
+
+# Output video writer initialization for both videos, to save the processed videos with detected lane lines
+output_kathmandu = cv.VideoWriter(
+    "Output/output_kathmandu.mp4", fourcc, fps_kathmandu, (frame_width, frame_height)
+)
+output_highway = cv.VideoWriter(
+    "Output/output_highway.mp4", fourcc, fps_highway, (frame_width2, frame_height2)
+)
+
 
 while True:
     isTrue, frame = Kathmandu_Video.read()
@@ -134,7 +169,7 @@ while True:
         Averaged_Kathmandu = average_line(frame, Hough_video_kathmandu)
     else:
         Averaged_Kathmandu = (None, None)
-        
+
     Hough_video_highway = cv.HoughLinesP(
         ROI_video_highway, 2, np.pi / 180, threshold=100, minLineLength=40, maxLineGap=5
     )
@@ -142,33 +177,31 @@ while True:
         Averaged_Highway = average_line(frame2, Hough_video_highway)
     else:
         Averaged_Highway = (None, None)
-    
-        
+
     left_avg_kathmandu, right_avg_kathmandu = Averaged_Kathmandu
     left_line_kathmandu = make_line(frame, left_avg_kathmandu)
     right_line_kathmandu = make_line(frame, right_avg_kathmandu)
-    
-    left_avg_highway, right_avg_highway = Averaged_Highway    
+
+    left_avg_highway, right_avg_highway = Averaged_Highway
     left_line_highway = make_line(frame2, left_avg_highway)
     right_line_highway = make_line(frame2, right_avg_highway)
-    
+
     if left_line_kathmandu is not None:
         x1, y1, x2, y2 = left_line_kathmandu
         cv.line(frame_copy, (x1, y1), (x2, y2), (0, 255, 0), 5)
-        
+
     if right_line_kathmandu is not None:
         x1, y1, x2, y2 = right_line_kathmandu
-        cv.line(frame_copy, (x1, y1), (x2, y2), (0, 255, 0), 5)   
-    
+        cv.line(frame_copy, (x1, y1), (x2, y2), (0, 255, 0), 5)
+
     if left_line_highway is not None:
         x1, y1, x2, y2 = left_line_highway
         cv.line(frame2_copy, (x1, y1), (x2, y2), (0, 255, 0), 5)
-        
+
     if right_line_highway is not None:
         x1, y1, x2, y2 = right_line_highway
         cv.line(frame2_copy, (x1, y1), (x2, y2), (0, 255, 0), 5)
-    
-    
+
     # Loop through detected lines and draw them on the copied frame
 
     # First loop for kathmandu video (with none check for lines, because if no lines detected, it will throw an error)
@@ -193,11 +226,13 @@ while True:
     # cv.imshow('ROI masked video highway',rescale_frame(ROI_video_highway,scale = 0.5))
     # cv.imshow("Hough Lines Video Kathmandu", rescale_frame(frame_copy, scale=0.5))
     # cv.imshow("Hough Lines Video Highway", rescale_frame(frame2_copy, scale=0.5))
-    
-    cv.imshow("averaged lines on highway", rescale_frame(frame2_copy, scale=0.5)
-              )
-    cv.imshow("averaged lines on kathmandu", rescale_frame(frame_copy, scale=0.5)
-              )
+
+    cv.imshow("averaged lines on highway", rescale_frame(frame2_copy, scale=0.5))
+    cv.imshow("averaged lines on kathmandu", rescale_frame(frame_copy, scale=0.5))
+
+    # Write the processed frames with detected lane lines to output videos
+    output_kathmandu.write(frame_copy)
+    output_highway.write(frame2_copy)
 
     # Using "d" to exit the video manually before video ends
     if cv.waitKey(20) & 0xFF == ord("d"):
@@ -207,4 +242,6 @@ while True:
 # Release file handling and free memory
 Kathmandu_Video.release()
 Highway_video.release()
+output_kathmandu.release()
+output_highway.release()
 cv.destroyAllWindows()

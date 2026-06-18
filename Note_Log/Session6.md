@@ -66,8 +66,3 @@ Signal absence produces confidently incorrect output, not null output.
 ### Images saved
 - averaged_lines_comparison_1.png both lanes detected on highway, Kathmandu lines tracking buildings
 - averaged_lines_comparison_2.png highway left lane clean, Kathmandu single line crossing frame diagonally
-
-### Next steps
-- Stage 8: Output video writer save processed video to file
-- Begin failure analysis documentation
-- Consider simple adaptations to test against baseline

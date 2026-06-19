@@ -1,6 +1,10 @@
 import cv2 as cv
 import numpy as np
+import os
+import sys
 
+#Create output directory if it doesn't exist
+os.makedirs('Output', exist_ok=True)
 
 # A average line function to average multiple line segments into one line for left and right lane
 def average_line(frame, lines):
@@ -85,11 +89,11 @@ Highway_video = cv.VideoCapture("videos/international/highway.mp4")
 # Check if videos opened successfully, if not, print error and exit
 if not Kathmandu_Video.isOpened():
     print("Error: Could not open Kathmandu video")
-    exit()
+    sys.exit(1)
 
 if not Highway_video.isOpened():
     print("Error: Could not open Highway video")
-    exit()
+    sys.exit(1)
 
 # FPS retrieval for both videos, to ensure they are processed at correct speed and to check if they are same or different
 fps_kathmandu = Kathmandu_Video.get(cv.CAP_PROP_FPS)

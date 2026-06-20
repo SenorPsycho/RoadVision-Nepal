@@ -6,6 +6,29 @@ import sys
 #Create output directory if it doesn't exist
 os.makedirs('Output', exist_ok=True)
 
+def hsv_filter(frame):
+    # Convert BGR to HSV
+    hsv = cv.cvtColor(frame, cv.COLOR_BGR2HSV)
+    
+    # Yellow mask — H 20-30, full saturation, full value
+    yellow_lower = np.array([15, 120, 80])
+    yellow_upper = np.array([35, 255, 255])
+    yellow_mask = cv.inRange(hsv, yellow_lower, yellow_upper)
+    
+    # White mask — any hue, low saturation, high value
+    white_lower = np.array([0, 0, 200])
+    white_upper = np.array([179, 50, 255])
+    white_mask = cv.inRange(hsv, white_lower, white_upper)
+    
+    # Combine both masks
+    combined_mask = cv.bitwise_or(yellow_mask, white_mask)
+    
+    # Apply mask to original BGR frame
+    result = cv.bitwise_and(frame, frame, mask=combined_mask)
+    
+    return result
+
+
 # A average line function to average multiple line segments into one line for left and right lane
 def average_line(frame, lines):
     left_lines = []
@@ -33,7 +56,7 @@ def make_line(frame, line):
     if abs(slope) < 0.001:  # guard against near-zero slope
         return None
     y1 = frame.shape[0]
-    y2 = int(y1 * 0.6)
+    y2 = int(y1 * 0.75)
     x1 = int((y1 - intercept) / slope)
     x2 = int((y2 - intercept) / slope)
     return (x1, y1, x2, y2)
@@ -137,11 +160,15 @@ while True:
     # frame_copy is kathmandu video, frame2_copy is highway video
     frame_copy = frame.copy()
     frame2_copy = frame2.copy()
+    
+    # Apply HSV filter to isolate lane colors (yellow and white) for both videos, to enhance lane line detection by reducing noise from irrelevant colors
+    hsv_kathmandu = hsv_filter(frame)
+    hsv_highway = hsv_filter(frame2)
 
     # Convert to grayscale — collapses 3 BGR channels into 1 intensity channel
     # Canny needs single channel input to detect intensity gradients cleanly
-    grayscale_video_kathmandu = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    grayscale_video_highway = cv.cvtColor(frame2, cv.COLOR_BGR2GRAY)
+    grayscale_video_kathmandu = cv.cvtColor(hsv_kathmandu, cv.COLOR_BGR2GRAY)
+    grayscale_video_highway = cv.cvtColor(hsv_highway, cv.COLOR_BGR2GRAY)
 
     ## Apply Gaussian blur to grayscale frame
     # Removes high-frequency noise before edge detection
@@ -187,6 +214,8 @@ while True:
     right_line_kathmandu = make_line(frame, right_avg_kathmandu)
 
     left_avg_highway, right_avg_highway = Averaged_Highway
+    # print("Left avg highway:", left_avg_highway)
+    # print("Right avg highway:", right_avg_highway)
     left_line_highway = make_line(frame2, left_avg_highway)
     right_line_highway = make_line(frame2, right_avg_highway)
 
@@ -230,6 +259,8 @@ while True:
     # cv.imshow('ROI masked video highway',rescale_frame(ROI_video_highway,scale = 0.5))
     # cv.imshow("Hough Lines Video Kathmandu", rescale_frame(frame_copy, scale=0.5))
     # cv.imshow("Hough Lines Video Highway", rescale_frame(frame2_copy, scale=0.5))
+    # cv.imshow("hsv filtered video kathmandu", rescale_frame(hsv_kathmandu, scale=0.5))
+    # cv.imshow("hsv filtered video highway", rescale_frame(hsv_highway, scale=0.5))
 
     cv.imshow("averaged lines on highway", rescale_frame(frame2_copy, scale=0.5))
     cv.imshow("averaged lines on kathmandu", rescale_frame(frame_copy, scale=0.5))

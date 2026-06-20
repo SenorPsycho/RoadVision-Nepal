@@ -21,16 +21,16 @@ This document also explores potential adaptations that could improve pipeline ro
 
 ### Stage 2 : Grayscale
 
-What it does
+**What it does**
 Collapses three BGR color channels into a single intensity channel. Each pixel of the frame is now representing brightness, with values from 0 (black) to 255 (white).
 
-What it assumed
+**What it assumed**
 Roads are painted with lane markings using high contrast colors, preferably white or yellow against a dark asphalt road surface. The contrast ensures it remains distinguishable when turned into intensity, i.e. a detectable brightness difference between markings and road surface.
 
-What happened on Kathmandu footage
+**What happened on Kathmandu footage**
 No markings lead to the road surface having a uniform low intensity gray all throughout with no detectable variation. No actual bright spots on the surface itself except noise, as dominant bright areas were street lamps, traffic headlights and backlights, and the dusk sky setting, none being road relevant.
 
-Why it happened technically
+**Why it happened technically**
 Without painted markings, there is no single color or brightness factor to use. Grayscale conversion has nothing relevant to preserve, since the input frame had nothing to contrast the lanes against to begin with. It also removes chromatic contrast, and that matters here because Kathmandu road surfaces, footpaths, and nearby buildings are often similar shades of gray and brown. Even if color were retained, there is minimal chromatic difference to exploit, so grayscale removes the last possible fallback.
 
 Implication for the pipeline

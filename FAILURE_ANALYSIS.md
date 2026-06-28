@@ -145,7 +145,7 @@ The core finding is simple: the classical lane detection pipeline is built on on
 
 This has two practical consequences. First, tuning thresholds and adjusting parameters cannot fix signal absence. Any system deployed on unstructured roads without lane markings will show Failure Mode 2 regardless of how carefully it is calibrated. Second, the pipeline's confident failure is more dangerous than silent failure for safety-critical applications. A system that draws no lines signals that it has lost tracking. A system that draws wrong lines with confidence gives no such signal.
 
-For roads like those in the Kathmandu footage, a viable detection system would need to use cues beyond lane markings. Possible approaches include road boundary detection using edge contrast between the road and its surroundings, semantic segmentation that identifies drivable surface rather than markings, or sensor fusion incorporating depth or GPS. These are outside the scope of this evaluation, but they represent the logical next step given what we have found here.
+For roads like those in the Kathmandu footage, a viable detection system would need to use cues beyond lane markings.  Possibleapproaches include road boundary detection using edge contrast between the road and its surroundings, semantic segmentation that identifies drivable surface rather than markings, or sensor fusion incorporating depth or GPS. These are outside the scope of this evaluation, but they represent the logical next step given what we have found here.
 
 ## Adaptation Experiments
 
